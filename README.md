@@ -1,4 +1,4 @@
-NoteHomework/NotebookUI.png
+NoteHomework/NotebookUI.png for UI picture
 
 # node-webapp
 
