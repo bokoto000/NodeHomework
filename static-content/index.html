@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Geeky web</title>
+<script src = "https://unpkg.com/react@15.3.1/dist/react.js"></script>
+<script src = "https://unpkg.com/react-dom@15.3.1/dist/react-dom.js"></script>
+<script src = "https://unpkg.com/babel-standalone@6/babel.js"></script>
+<script src = "https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<link rel="stylesheet" type="text/css"
+ href = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css"/>
+</head>
+<body>
+
+<div id= 'content' class="container"></div>
+<script type = "text/babel">
+
+class App extends React.Component{
+	
+	constructor(){
+		super()
+		this.state = { entries: [], showForm: false, formData: {}, delData:{} }	
+		this.createEntry = this.createEntry.bind(this)
+	}
+	componentDidMount(){
+		self = this
+		jQuery.ajax({
+			url: '/rest/endpoints/get-all',
+			success:function(data){
+				self.setState({ entries : data})
+			},
+			error: function(xhr){
+				alert('Status: '+ xhr.status + ', Error: '+ xhr.responseText)	
+			}
+		})
+	}
+	
+	createEntry(){
+		let data = this.state.formData
+		jQuery.ajax({
+			method: 'POST',
+			url:'/rest/endpoints/create',
+			headers: {'content-type': 'application/json' },
+			data: JSON.stringify(data),
+			success: function(responseData){
+				let entries = self.state.entries
+				entries.push(responseData)
+				self.setState({ entries : entries })
+			},
+		error: function (xhr) {
+			alert('Status: ' + xhr.status + ', Error: ' + xhr.responseText)
+		}
+	})
+}
+
+deleteEntry(){
+		let data = this.state.delData
+		jQuery.ajax({
+			method: 'POST',
+			url:'/rest/endpoints/delete',
+			headers: {'content-type': 'application/json' },
+			data: JSON.stringify(data),
+			success: function(responseData){
+				let entries = self.state.entries
+				entries.push(responseData)
+				self.setState({ entries : entries })
+			},
+		error: function (xhr) {
+			alert('Status: ' + xhr.status + ', Error: ' + xhr.responseText)
+		}
+	})
+}
+
+	render(){
+		return (
+		<div>
+				<br/>
+				<br/>
+				<button className="btn btn-primary" onClick={ (e) => {this.setState({showForm: !(this.state.showForm) })}}> Create new </button>
+				<br/>
+				<br/>
+				{ this.state.showForm && (
+					<div>
+						<div className="input-group">
+							<label> Name </label>
+							<input type = "text" className= "form-control" 
+								onChange={ (e) => this.setState({formData: {name: e.target.value}}) } />
+						</div>
+						<div className="input-group">
+							<label> Content </label>
+							<input type = "text" className= "form-control" 
+								onChange={ (e) => this.setState({formData: {content: e.target.value}}) } />
+						</div>
+							<br/>
+							<button className= "btn btn-primary" onClick = {this.createEntry}>Save</button>
+					</div>
+					)
+				}
+			<table className="table table-striped table-condensed">
+				<thead>
+					<h1>Notes:</h1>
+					<tr>
+						<th> ID </th>
+						<th> Name </th>
+						<th> Content </th>
+						<th> Options </th>
+					</tr>
+				</thead>
+			<tbody>
+				{
+					this.state.entries.map(function (entry){
+						return(<tr key={entry.id}>
+									<td>{ entry.id} </td>
+									<td>{ entry.name} </td>
+									<td>{ entry.content } </td>
+									<td>{ <button className="btn btn-primary" onClick={ (e) => {this.deleteEntry} } > Delete </button>}</td>
+								</tr>)
+					})
+				}
+			</tbody>
+			</table>
+
+	</div>
+	)
+	}
+}
+ReactDOM.render(
+	<App/>,
+	document.getElementById("content")
+)
+</script>
+
+</body>
+</html>
